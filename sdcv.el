@@ -423,7 +423,7 @@ And show information use tooltip."
 (defun sdcv-next-dictionary ()
   "Jump to next dictionary."
   (interactive)
-  (show-all)
+  (outline-show-all)
   (if (search-forward-regexp "^-->.*\n-" nil t) ;don't show error when search failed
       (progn
         (call-interactively 'previous-line)
@@ -433,7 +433,7 @@ And show information use tooltip."
 (defun sdcv-previous-dictionary ()
   "Jump to previous dictionary."
   (interactive)
-  (show-all)
+  (outline-show-all)
   (if (search-backward-regexp "^-->.*\n-" nil t) ;don't show error when search failed
       (progn
         (forward-char 1)
@@ -458,7 +458,7 @@ And show information use tooltip."
     (save-excursion
       (beginning-of-line nil)
       (when (looking-at outline-regexp)
-        (show-entry)))))
+        (outline-show-entry)))))
 
 (defun sdcv-prev-line (arg)
   "Previous ARG line."
@@ -669,7 +669,7 @@ the beginning of the buffer."
     (setq buffer-read-only t)
     (goto-char (point-min))
     (sdcv-next-dictionary)
-    (show-all)
+    (outline-show-all)
     (message "Finished searching `%s'." sdcv-current-translate-object)))
 
 (defun sdcv-prompt-input ()
@@ -689,17 +689,18 @@ Otherwise return word around point."
 
 ;;;; html processing
 (defun sdcv-remove-img-tags ()
-  (beginning-of-buffer)
+  (goto-char (point-min))
   (while (re-search-forward "<IMG .*?>" nil t)
     (replace-match "®"))
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 (defun sdcv-render-one-entry ()
   ;;(setq mend (make-marker))
   ;; `TODO' remove hardcoded strings
   (re-search-forward "^-->" nil 'gotoend nil)
   (forward-line 1)
-  (let ((anf (point)))
+  (let ((anf (point))
+	mend)
     (re-search-forward "^-->" nil 'gotoend nil)
     (forward-line 0)
     (setq mend (point-marker))
@@ -718,7 +719,7 @@ Otherwise return word around point."
   (if (eobp)
       (progn 
 	(flush-lines "^$" (point-min) (point-max))
-	(end-of-buffer)
+	(goto-char (point-max))
 	(newline))
     (sdcv-render-one-entry)
     (sdcv-render-all-entries)))
