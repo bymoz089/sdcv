@@ -603,13 +603,17 @@ string of results."
   (sdcv-filter
    (shell-command-to-string
     ;; Set LANG environment variable, make sure `shell-command-to-string' can handle CJK character correctly.
-    (format "LANG=zh_CN.UTF-8 %s -x -n %s %s --data-dir=%s"
-            sdcv-program
-            (mapconcat (lambda (dict)
-                         (concat "-u \"" dict "\""))
-                       dictionary-list " ")
-            word
-            sdcv-dictionary-data-dir))))
+    ;;(format "LANG=zh_CN.UTF-8 %s -x -n %s %s --data-dir=%s" ;; WTF??
+    (format "%s -x -n %s %s --data-dir=%s"
+	    sdcv-program
+	    (mapconcat (lambda (dict)
+			 (concat "-u \"" dict "\""))
+		       dictionary-list " ")
+	    word
+	    sdcv-dictionary-data-dir
+	    )
+    ;; (format "%s -n %s" sdcv-program word) ;; simple lookup for testing
+    )))
 
 (defun sdcv-filter (sdcv-string)
   "This function is for filter sdcv output string,.
