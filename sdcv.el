@@ -285,6 +285,15 @@ Voice will fetch from youdao.com if you use other system."
   :type 'integer
   :group 'sdcv)
 
+(defcustom sdvc-process-html t
+  "render html code from dictionary files
+Default is nil
+
+nil do not process
+t process and render html tags inline using `shr-renderer'"
+  :type 'boolean
+  :group 'sdcv)
+
 (defface sdcv-tooltip-face
     '((t (:foreground "green" :background "gray12")))
   "Face for sdcv tooltip"
@@ -495,12 +504,12 @@ will be displayed in buffer named with `sdcv-buffer-name' with
 `sdcv-mode'."
   (message "Searching...")
   (with-current-buffer (get-buffer-create sdcv-buffer-name)
+    (sdcv-goto-sdcv) ;; moved here, so that shr-renderer gets the correct buffer-width information
     (setq buffer-read-only nil)
     (erase-buffer)
     (setq sdcv-current-translate-object word)
     (insert (sdcv-search-with-dictionary word
                                          sdcv-dictionary-complete-list))
-    (sdcv-goto-sdcv)
     (sdcv-mode-reinit)))
 
 (defun sdcv-search-simple (&optional word)
@@ -625,6 +634,9 @@ Argument SDCV-STRING the search string from sdcv."
       (insert sdcv-string)
       (goto-char (point-min))
       (kill-line 1)                   ;remove unnecessary information.
+      (when sdvc-process-html
+	(sdcv-remove-img-tags)
+	(sdcv-render-all-entries))
       (buffer-string))))
 
 (defun sdcv-goto-sdcv ()
@@ -669,6 +681,42 @@ Otherwise return word around point."
       (buffer-substring-no-properties (region-beginning)
                                       (region-end))
     (thing-at-point 'word)))
+
+;;;; html processing
+(defun sdcv-remove-img-tags ()
+  (beginning-of-buffer)
+  (while (re-search-forward "<IMG .*?>" nil t)
+    (replace-match "®"))
+  (beginning-of-buffer))
+
+(defun sdcv-render-one-entry ()
+  ;;(setq mend (make-marker))
+  ;; `TODO' remove hardcoded strings
+  (re-search-forward "^-->" nil 'gotoend nil)
+  (forward-line 1)
+  (let ((anf (point)))
+    (re-search-forward "^-->" nil 'gotoend nil)
+    (forward-line 0)
+    (setq mend (point-marker))
+    (when (< anf mend)
+      (condition-case error
+	  (progn ;; remove additional search string; `TODO' enhance
+	    (goto-char (- anf 1))
+	    (re-search-forward "^[[:alpha:] ]*<br>" mend nil)
+	    (delete-region anf (point)))
+	(search-failed
+	 nil))
+      (shr-render-region anf (- mend 1)))
+    (set-marker mend nil)))
+
+(defun sdcv-render-all-entries ()
+  (if (eobp)
+      (progn 
+	(flush-lines "^$" (point-min) (point-max))
+	(end-of-buffer)
+	(newline))
+    (sdcv-render-one-entry)
+    (sdcv-render-all-entries)))
 
 (provide 'sdcv)
 
