@@ -376,6 +376,8 @@ Turning on Text mode runs the normal hook `sdcv-mode-hook'."
   (set (make-local-variable 'outline-regexp) "^-->.*\n-->"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Interactive Functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;###autoload
 (defun sdcv-search-pointer (&optional word)
   "Get current word.
 And display complete translations in other buffer."
@@ -383,6 +385,7 @@ And display complete translations in other buffer."
   ;; Display details translate result.
   (sdcv-search-detail (or word (sdcv-region-or-word))))
 
+;;;###autoload
 (defun sdcv-search-pointer+ ()
   "Translate current point word.
 And show information use tooltip.
@@ -391,6 +394,7 @@ But this function use a simple dictionary list."
   ;; Display simple translate result.
   (sdcv-search-simple))
 
+;;;###autoload
 (defun sdcv-search-input (&optional word)
   "Translate current input WORD.
 And show information in other buffer."
@@ -398,6 +402,7 @@ And show information in other buffer."
   ;; Display details translate result.
   (sdcv-search-detail (or word (sdcv-prompt-input))))
 
+;;;###autoload
 (defun sdcv-search-input+ (&optional word)
   "Translate current point WORD.
 And show information use tooltip."
