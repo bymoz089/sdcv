@@ -216,7 +216,16 @@
 (require 'outline)
 (eval-when-compile
   (require 'cl))
-(require 'posframe)
+
+;; posframe only avail at emacs v26 or newer
+(unless (require 'posframe nil t)
+  (require 'popup)
+  (defun posframe-workable-p ()
+    nil)
+  (defun posframe-show (&rest foo)
+    nil)
+  (defun posframe-delete (&rest foo)
+    nil))
 
 ;;; Code:
 
@@ -498,15 +507,23 @@ will be displayed in buffer named with `sdcv-buffer-name' with
   "Search WORD simple translate result."
   (let ((result (sdcv-search-with-dictionary word sdcv-dictionary-simple-list)))
     ;; Show tooltip at point if word fetch from user cursor.
-    (posframe-show
-     sdcv-tooltip-name
-     :string result
-     :position (point)
-     :timeout sdcv-tooltip-timeout
-     :background-color (face-attribute 'sdcv-tooltip-face :background)
-     :foreground-color (face-attribute 'sdcv-tooltip-face :foreground)
-     :internal-border-width sdcv-tooltip-border-width
-     )
+    (if (posframe-workable-p)
+	(posframe-show
+	   sdcv-tooltip-name
+	   :string result
+	   :position (point)
+	   :timeout sdcv-tooltip-timeout
+	   :background-color (face-attribute 'sdcv-tooltip-face :background)
+	   :foreground-color (face-attribute 'sdcv-tooltip-face :foreground)
+	   :internal-border-width sdcv-tooltip-border-width)
+      (let ((popup-tip-max-width (window-body-width))) ;; ensure that shr-renderer and popup width are equal
+	(popup-tip result
+		   :margin 2
+		   :truncate nil
+		   :scroll-bar t ;; indicate that there is more info
+		   :height (floor (* (window-body-height) 0.75)))) ;; max, it should fit inside the window
+      ;;(tooltip-show result)
+      )
     (add-hook 'post-command-hook 'sdcv-hide-tooltip-after-move)
     (setq sdcv-tooltip-last-point (point))
     (setq sdcv-tooltip-last-scroll-offset (window-start))
