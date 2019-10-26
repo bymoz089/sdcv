@@ -219,13 +219,13 @@
 
 ;; posframe only avail at emacs v26 or newer
 (unless (require 'posframe nil t)
-  (require 'popup)
   (defun posframe-workable-p ()
     nil)
   (defun posframe-show (&rest foo)
     nil)
   (defun posframe-delete (&rest foo)
-    nil))
+    nil)
+  (require 'popup))
 
 ;;; Code:
 
